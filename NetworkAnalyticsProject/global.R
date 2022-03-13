@@ -28,8 +28,14 @@ get.books.highest.rating <- function(number.books) {
   dt.books %>% slice_max(average_rating, n = number.books, with_ties = FALSE)
 }
 
-plot.books.published.by.year <- function() {
-  ggplot(dt.books,aes(x=published_year)) + geom_bar() + ggtitle('Books per Year')
+get.books.count.year.range <- function(year.range) {
+  dt.books.range <- filter(dt.books, published_year >= min(year.range) & published_year <= max(year.range))
+  nrow(dt.books.range)
+}
+
+plot.books.published.by.year <- function(year.range) {
+  dt.books.range <- filter(dt.books, published_year >= min(year.range) & published_year <= max(year.range))
+  ggplot(dt.books.range, aes(x=published_year)) + geom_bar() + ggtitle('Books per Year')
 }
 
 plot.books.by.ranking <- function() {

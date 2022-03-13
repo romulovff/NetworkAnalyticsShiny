@@ -22,18 +22,24 @@ ui <- fluidPage(theme = shinytheme("yeti"),
                 sidebarLayout(
                     #Sidebar
                     sidebarPanel(
-                        radioButtons("bar.chart", "Statistics by:",
+                        radioButtons("bar.chart", h4("Statistics by:"),
                                      c("Year" = "chart.year",
                                        "Category" = "chart.category",
+                                       "Author" = "chart.author",
                                        "Rating" = "chart.rating")),
                         sliderInput("top.n.values",
-                                    "Top N",
+                                    h4("Top N"),
                                     value = 5,
                                     step = 5,
                                     min = 5,
                                     max = 50),
+                        sliderInput("year.range", 
+                                    label = h4("Year Range"), 
+                                    min = 1850, 
+                                    max = 2022, 
+                                    value = c(1850, 2022)),
                         selectInput("author.name",
-                                    "Select author",
+                                    h4("Select author"),
                                     NULL)
                     ),
                     #Tabs
@@ -68,23 +74,27 @@ server <- function(input, output, session) {
         list(
           if(input$bar.chart == "chart.year" && input$generaltab == "Statistics"){
             list(
-              h2(paste0("Total Books in Dataset: ", nrow(dt.books))),
-              renderPlot(plot.books.published.by.year()),
-              h2(paste0(input$top.n.values, " Authors With Most Books in the Dataset")),
+              h3(paste0("Total Books in Dataset: ", get.books.count.year.range(input$year.range))),
+              renderPlot(plot.books.published.by.year(input$year.range))
+            )
+          },
+          if(input$bar.chart == "chart.author" && input$generaltab == "Statistics"){
+            list(
+              h3(paste0(input$top.n.values, " Authors With Most Books in the Dataset")),
               renderTable(get.authors.most.books(input$top.n.values))
             )
           },
           if(input$bar.chart == "chart.rating" && input$generaltab == "Statistics"){
             list(
-              h2(paste0("Average Book Rating: ", round(mean(dt.books$average_rating, na.rm = TRUE),3))),
+              h3(paste0("Average Book Rating: ", round(mean(dt.books$average_rating, na.rm = TRUE),3))),
               renderPlot(plot.books.by.ranking()),
-              h2(paste0(input$top.n.values, " Books With Highest Rating in the Dataset")),
+              h3(paste0(input$top.n.values, " Books With Highest Rating in the Dataset")),
               renderTable(get.books.highest.rating(input$top.n.values))
             )
           },
           if(input$bar.chart == "chart.category" && input$generaltab == "Statistics"){
             list(
-              h2(paste0(input$top.n.values," Categories With Most Books in the Dataset")),
+              h3(paste0(input$top.n.values," Categories With Most Books in the Dataset")),
               renderTable(get.categories.most.books(input$top.n.values))
             )
           }
