@@ -26,7 +26,7 @@ ui <- fluidPage(theme = shinytheme("yeti"),
                                      c("Year" = "chart.year",
                                        "Category" = "chart.category",
                                        "Author" = "chart.author",
-                                       "Rating" = "chart.rating")),
+                                       "Book" = "chart.book")),
                         sliderInput("top.n.values",
                                     h4("Top N"),
                                     value = 5,
@@ -75,16 +75,20 @@ server <- function(input, output, session) {
           if(input$bar.chart == "chart.year" && input$generaltab == "Statistics"){
             list(
               h3(paste0("Number of Books: ", get.books.count.year.range(input$year.range))),
-              renderPlot(plot.books.published.by.year(input$year.range))
+              renderPlot(plot.books.published.by.year(input$year.range)),
+              h3(paste0("Number of Distinct Authors: ", get.authors.count.year.range(input$year.range))),
+              renderPlot(plot.distinct.authors.by.year(input$year.range))
             )
           },
           if(input$bar.chart == "chart.author" && input$generaltab == "Statistics"){
             list(
+              h3("Number of Authors per Book Distribution: "),
+              renderPlot(plot.books.by.authornumber(input$year.range)),
               h3(paste0(input$top.n.values, " Authors With Most Books")),
               renderTable(get.authors.most.books(input$top.n.values, input$year.range))
             )
           },
-          if(input$bar.chart == "chart.rating" && input$generaltab == "Statistics"){
+          if(input$bar.chart == "chart.book" && input$generaltab == "Statistics"){
             list(
               h3(paste0("Average Book Rating: ", get.average.book.rating(input$year.range))),
               renderPlot(plot.books.by.ranking(input$year.range)),
@@ -94,11 +98,19 @@ server <- function(input, output, session) {
           },
           if(input$bar.chart == "chart.category" && input$generaltab == "Statistics"){
             list(
-              h3(paste0(input$top.n.values," Categories With Most Books")),
-              renderTable(get.categories.most.books(input$top.n.values, input$year.range))
+              h3(paste0(input$top.n.values,"Categories With Most Books")),
+              renderTable(get.categories.most.books(input$top.n.values, input$year.range)),
+              h3("Distinct Authors for each Category"),
+              renderTable(get.distinct.author.per.category(input$year.range))
             )
           }
         )
+      } else {
+        if(input$maintabs == "Author") {
+          list(
+            h3(paste("Average Book Rating for Author Selected:", author.avg.rank(input$author.name, input$year.range)))
+          )
+        }
       }
     )
     
