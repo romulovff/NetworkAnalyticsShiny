@@ -14,23 +14,31 @@ get.unique.authors <- function() {
   unique(dt.books$authors)
 }
 
-get.authors.most.books <- function(number.authors) {
-  dt.authors.books <- dt.books %>% count(authors, sort = TRUE)
+get.authors.most.books <- function(number.authors, year.range) {
+  dt.books.range <- filter(dt.books, published_year >= min(year.range) & published_year <= max(year.range))
+  dt.authors.books <- dt.books.range %>% count(authors, sort = TRUE)
   dt.authors.books[1:number.authors,]
 }
 
-get.categories.most.books <- function(number.categories) {
-  dt.categories.books <- dt.books %>% count(categories, sort = TRUE)
+get.average.book.rating <- function(year.range) {
+  dt.books.range <- filter(dt.books, published_year >= min(year.range) & published_year <= max(year.range))
+  round(mean(dt.books.range$average_rating, na.rm = TRUE),3)
+}
+
+get.categories.most.books <- function(number.categories, year.range) {
+  dt.books.range <- filter(dt.books, published_year >= min(year.range) & published_year <= max(year.range))
+  dt.categories.books <- dt.books.range %>% count(categories, sort = TRUE)
   dt.categories.books[1:number.categories,]
 }
 
-get.books.highest.rating <- function(number.books) {
-  dt.books %>% slice_max(average_rating, n = number.books, with_ties = FALSE)
+get.books.highest.rating <- function(number.books, year.range) {
+  dt.books.range <- filter(dt.books, published_year >= min(year.range) & published_year <= max(year.range))
+  dt.books.range %>% slice_max(average_rating, n = number.books, with_ties = FALSE)
 }
 
 get.books.count.year.range <- function(year.range) {
   dt.books.range <- filter(dt.books, published_year >= min(year.range) & published_year <= max(year.range))
-  nrow(dt.books.range)
+  length(unique(dt.books.range$title))
 }
 
 plot.books.published.by.year <- function(year.range) {
@@ -38,8 +46,9 @@ plot.books.published.by.year <- function(year.range) {
   ggplot(dt.books.range, aes(x=published_year)) + geom_bar() + ggtitle('Books per Year')
 }
 
-plot.books.by.ranking <- function() {
-  ggplot(dt.books,aes(x=average_rating)) + geom_histogram() +  ggtitle('Books per Ranking')
+plot.books.by.ranking <- function(year.range) {
+  dt.books.range <- filter(dt.books, published_year >= min(year.range) & published_year <= max(year.range))
+  ggplot(dt.books.range,aes(x=average_rating)) + geom_histogram() +  ggtitle('Books per Ranking')
 }
 
 load("books.RData")
