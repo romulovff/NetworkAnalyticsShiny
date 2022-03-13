@@ -28,7 +28,7 @@ ui <- fluidPage(theme = shinytheme("yeti"),
                                        "Rating" = "chart.rating")),
                         sliderInput("top.n.values",
                                     "Top N",
-                                    value = 0,
+                                    value = 5,
                                     step = 5,
                                     min = 5,
                                     max = 50),
@@ -38,9 +38,18 @@ ui <- fluidPage(theme = shinytheme("yeti"),
                     ),
                     #Tabs
                     mainPanel(tabsetPanel(type = "tabs",
-                                          tabPanel("Statistics"),
-                                          tabPanel("Your Network"),
-                                          tabPanel("Overall Network")),
+                                          id = "maintabs",
+                                          tabPanel("General", 
+                                                   tabsetPanel(type = "tabs",
+                                                               id = "generaltab",
+                                                               tabPanel("Statistics"),
+                                                               tabPanel("Graph"))),
+                                          tabPanel("Author", 
+                                                   tabsetPanel(type = "tabs",
+                                                               id = "authortab",
+                                                               tabPanel("Statistics"),
+                                                               tabPanel("Graph")))
+                    ),
                               #verbatimTextOutput("test"),
                               htmlOutput("out")
                     )
@@ -55,30 +64,32 @@ server <- function(input, output, session) {
     })
     
     output$out <- renderUI(
-      list(
-        if(input$bar.chart == "chart.year"){
-          list(
-            h2(paste0("Total Books in Dataset: ", nrow(dt.books))),
-            renderPlot(plot.books.published.by.year()),
-            h2(paste0(input$top.n.values, " Authors With Most Books in the Dataset")),
-            renderTable(get.authors.most.books(input$top.n.values))
-          )
-        },
-        if(input$bar.chart == "chart.rating"){
-          list(
-            h2(paste0("Average Book Rating: ", round(mean(dt.books$average_rating, na.rm = TRUE),3))),
-            renderPlot(plot.books.by.ranking()),
-            h2(paste0(input$top.n.values, " Books With Highest Rating in the Dataset")),
-            renderTable(get.books.highest.rating(input$top.n.values))
-          )
-        },
-        if(input$bar.chart == "chart.category"){
-          list(
-            h2(paste0(input$top.n.values," Categories With Most Books in the Dataset")),
-            renderTable(get.categories.most.books(input$top.n.values))
-          )
-        }
-      )
+      if(input$maintabs == "General"){
+        list(
+          if(input$bar.chart == "chart.year" && input$generaltab == "Statistics"){
+            list(
+              h2(paste0("Total Books in Dataset: ", nrow(dt.books))),
+              renderPlot(plot.books.published.by.year()),
+              h2(paste0(input$top.n.values, " Authors With Most Books in the Dataset")),
+              renderTable(get.authors.most.books(input$top.n.values))
+            )
+          },
+          if(input$bar.chart == "chart.rating" && input$generaltab == "Statistics"){
+            list(
+              h2(paste0("Average Book Rating: ", round(mean(dt.books$average_rating, na.rm = TRUE),3))),
+              renderPlot(plot.books.by.ranking()),
+              h2(paste0(input$top.n.values, " Books With Highest Rating in the Dataset")),
+              renderTable(get.books.highest.rating(input$top.n.values))
+            )
+          },
+          if(input$bar.chart == "chart.category" && input$generaltab == "Statistics"){
+            list(
+              h2(paste0(input$top.n.values," Categories With Most Books in the Dataset")),
+              renderTable(get.categories.most.books(input$top.n.values))
+            )
+          }
+        )
+      }
     )
     
     updateSelectInput(
