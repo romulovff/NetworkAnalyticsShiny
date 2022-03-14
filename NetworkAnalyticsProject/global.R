@@ -79,6 +79,78 @@ plot.books.by.authornumber <- function(year.range) {
   ggplot(dt.authors.number,aes(x=n)) + geom_histogram() +  ggtitle('Books per Number of Authors')
 }
 
+## INDIVIDUAL NETWORKS
+
+plot.author.to.books.network <- function(author.name) {
+  dt.author <- dt.books[dt.books$authors == author.name, ]
+  dt.author.books <- dt.author[, c("title", "authors")][2:1]
+  dt.author.books <- dt.author.books[!duplicated(dt.author.books), ]
+  g.author.to.books.network <- graph.data.frame(dt.author.books, directed = TRUE)
+  plot(g.author.to.books.network)
+}
+
+# Aqui talvez fizesse sentido a introdução de pesos
+plot.author.to.categories.network <- function(author.name) {
+  dt.author <- dt.books[dt.books$authors == author.name, ]
+  dt.author.categories <- dt.author[, c("categories", "authors")][2:1]
+  # No caso de se introduzir pesos, aqui não se remove duplicados
+  dt.author.categories <- dt.author.categories[!duplicated(dt.author.categories), ]
+  g.author.to.categories.network <- graph.data.frame(dt.author.categories, directed = TRUE)
+  plot(g.author.to.categories.network)
+}
+
+plot.similar.rank.authors <- function(author.name) {
+  dt.author <- dt.books[dt.books$authors == author.name, ]
+  author.class <- dt.author$avg_rating_individual_class[1]
+  authors.similar.class <- unique(dt.books[dt.books$avg_rating_individual_class == author.class, ]$authors)
+  authors.similar.class <- authors.similar.class[authors.similar.class != author.name]
+  #só aparecem 30 autores
+  dt.author.similar.ranking <- cbind(authors = authors.similar.class, author = author.name)[1:30,]
+  g.books.ranking <- graph.data.frame(dt.author.similar.ranking, directed = FALSE)
+  plot(g.books.ranking)
+}
+
+plot.similar.category.authors <- function(author.name) {
+  dt.author <- dt.books[dt.books$authors == author.name, ]
+  author.main.category <- dt.author$main_category[1]
+  authors.similar.category <- unique(dt.books[dt.books$main_category == author.main.category, ]$authors)
+  authors.similar.category <- authors.similar.category[authors.similar.category != author.name]
+  #só aparecem 30 autores
+  dt.author.similar.category <- cbind(authors = authors.similar.category, author = author.name)[1:30,]
+  g.books.category<- graph.data.frame(dt.author.similar.category, directed = FALSE)
+  plot(g.books.category)
+}
+
+plot.similar.rank.category.authors <- function(author.name) {
+  dt.author <- dt.books[dt.books$authors == author.name, ]
+  author.class <- dt.author$avg_rating_individual_class[1]
+  author.main.category <- dt.author$main_category[1]
+  authors.similar.class <- unique(dt.books[dt.books$avg_rating_individual_class == author.class, ]$authors)
+  authors.similar.class <- authors.similar.class[authors.similar.class != author.name]
+  authors.similar.category <- unique(dt.books[dt.books$main_category == author.main.category, ]$authors)
+  authors.similar.category <- authors.similar.category[authors.similar.category != author.name]
+  authors.similar.class.category <- c(authors.similar.class, authors.similar.category)
+  #só aparecem 30 autores
+  dt.authors.similar.class.category <- cbind(authors = authors.similar.class.category, author = author.name)[1:30,]
+  g.books.class.category<- graph.data.frame(dt.authors.similar.class.category, directed = FALSE)
+  plot(g.books.class.category)
+}
+
+# OVERALL NETWORKS
+
+plot.similar.category.network <- function() {
+  dt.top.50.authors.published <- as.data.table(dt.books)
+  dt.top.50.authors.published <- dt.top.50.authors.published[, n_books := .N, by="authors"]
+  top.50.authors.published <- unique(dt.top.50.authors.published[order(-n_books)]$authors)[1:30]
+  dt.50.authors.published <- dt.books[dt.top.50.authors.published$authors %in% top.50.authors.published, ]
+  dt.authors <- data.table(authors = unique(dt.50.authors.published$authors), type= TRUE)
+  dt.categories <- data.table(authors = unique(dt.50.authors.published$categories), type= FALSE)
+  dt.vertices <- rbind(dt.authors, dt.categories)
+  g <- graph.data.frame(dt.50.authors.published[c("authors","categories")], directed = FALSE, vertices = dt.vertices)
+  g.categories <- bipartite.projection(g)$proj2
+  plot(g.categories)
+}
+
 load("books.RData")
 
 

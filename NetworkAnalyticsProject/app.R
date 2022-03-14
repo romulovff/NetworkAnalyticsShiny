@@ -103,12 +103,30 @@ server <- function(input, output, session) {
               h3("Distinct Authors for each Category"),
               renderTable(get.distinct.author.per.category(input$year.range))
             )
+          },
+          if(input$generaltab == "Graph") {
+            list(
+              h3(print("Authors connected if books written are of the same category")),
+              renderPlot(plot.similar.category.network())
+            )
           }
         )
       } else {
         if(input$maintabs == "Author") {
           list(
-            h3(paste("Average Book Rating for Author Selected:", author.avg.rank(input$author.name, input$year.range)))
+            # h3(paste("Average Book Rating for Author Selected:", author.avg.rank(input$author.name, input$year.range))),
+            if(input$generaltab == "Graph"){
+              # h3("Graph that connects author with the book")
+              # renderPlot(plot.author.to.books.network(input$author.name))
+              # h3("Graph that connects author with categories")
+              renderPlot(plot.author.to.categories.network(input$author.name))
+              # h3("Graph that connect authors with similar rank")
+              # renderPlot(plot.similar.rank.authors(input$author.name))
+              # h3("Graph that connect authors with similar category")
+              # renderPlot(plot.similar.category.authors(input$author.name))
+              # h3("Graph that connects authors with similar rank and category")
+              # renderPlot(plot.similar.rank.category.authors(input$author.name))
+            }
           )
         }
       }
