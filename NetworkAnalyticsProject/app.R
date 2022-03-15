@@ -129,13 +129,19 @@ server <- function(input, output, session) {
             list(
               h3(print("Authors connected if books written are of the same category")),
               renderPlot(plot.similar.category.network(input$year.range, input$top.n.values, input$switch.value)),
-              renderPrint(plot.similar.category.network(input$year.range, input$top.n.values, input$switch.value)),
+              if(input$switch.value == TRUE) {
+                renderPrint(plot.similar.category.network(input$year.range, input$top.n.values, input$switch.value))
+              },
               h3(print("Authors connected if similar rating")),
               renderPlot(plot.similar.rating.network(input$year.range, input$top.n.values, input$switch.value)),
-              renderPrint(plot.similar.rating.network(input$year.range, input$top.n.values, input$switch.value)),
+              if(input$switch.value == TRUE) {
+                renderPrint(plot.similar.rating.network(input$year.range, input$top.n.values, input$switch.value))
+              },
               h3(print("Authors connected if co-written a book")),
               renderPlot(plot.co.authors.network(input$year.range, input$top.n.values, input$switch.value)),
-              renderPrint(plot.co.authors.network(input$year.range, input$top.n.values, input$switch.value))
+              if(input$switch.value == TRUE) {
+                renderPrint(plot.co.authors.network(input$year.range, input$top.n.values, input$switch.value))
+              }
             )
           }
         }
