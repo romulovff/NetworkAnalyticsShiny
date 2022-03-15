@@ -13,6 +13,7 @@ library(ggplot2)
 library(shiny)
 library(shinythemes)
 library(hash)
+library(shinyWidgets)
 
 # Define UI
 ui <- fluidPage(theme = shinytheme("superhero"),
@@ -25,11 +26,15 @@ ui <- fluidPage(theme = shinytheme("superhero"),
                     sidebarPanel(
                       conditionalPanel(
                         condition = "input.maintabs == 'General'",
-                        radioButtons("bar.chart", h4("Statistics by:"),
-                                     c("Year" = "chart.year",
-                                       "Category" = "chart.category",
-                                       "Author" = "chart.author",
-                                       "Book" = "chart.book"))
+                        awesomeRadio(
+                          inputId = "bar.chart",
+                          label = h4("Statistics by"), 
+                          choices = c("Year" = "chart.year",
+                                      "Category" = "chart.category",
+                                      "Author" = "chart.author",
+                                      "Book" = "chart.book"),
+                          selected = "chart.year"
+                        )
                       ),
                       conditionalPanel(
                         condition = "input.maintabs == 'Author'",
@@ -48,6 +53,14 @@ ui <- fluidPage(theme = shinytheme("superhero"),
                                     min = 1850, 
                                     max = 2020, 
                                     value = c(1850, 2020)),
+                      conditionalPanel(
+                        condition = "input.maintabs == 'General' & input.generaltab == 'Graph'",
+                        switchInput(
+                          inputId = "switch.value",
+                          label = "Network Exploration", 
+                          labelWidth = "80px"
+                        )
+                      ),
                     ),
                     #Tabs
                     mainPanel(tabsetPanel(type = "tabs",
@@ -115,11 +128,12 @@ server <- function(input, output, session) {
           if(input$generaltab == "Graph") {
             list(
               h3(print("Authors connected if books written are of the same category")),
-              renderPlot(plot.similar.category.network(input$year.range, input$top.n.values)),
+              renderPlot(plot.similar.category.network(input$year.range, input$top.n.values, input$switch.value)),
+              h5("Graph that connects author with the book"),
               h3(print("Authors connected if similar rating")),
-              renderPlot(plot.similar.rating.network(input$year.range, input$top.n.values)),
+              renderPlot(plot.similar.rating.network(input$year.range, input$top.n.values, input$switch.value)),
               h3(print("Authors connected if co-written a book")),
-              renderPlot(plot.co.authors.network(input$top.n.values))
+              renderPlot(plot.co.authors.network(input$top.n.values, input$switch.value))
             )
           }
         }
