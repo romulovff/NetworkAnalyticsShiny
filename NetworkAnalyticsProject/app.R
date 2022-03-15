@@ -12,12 +12,13 @@ library(igraph)
 library(ggplot2)
 library(shiny)
 library(shinythemes)
+library(hash)
 
 # Define UI
-ui <- fluidPage(theme = shinytheme("yeti"),
+ui <- fluidPage(theme = shinytheme("superhero"),
                 
                 #App title
-                titlePanel("Book Network Analysis"),
+              titlePanel("Book Network Analysis"),
                 
                 sidebarLayout(
                     #Sidebar
@@ -52,9 +53,7 @@ ui <- fluidPage(theme = shinytheme("yeti"),
                                                                tabPanel("Graph"))),
                                           tabPanel("Author", 
                                                    tabsetPanel(type = "tabs",
-                                                               id = "authortab",
-                                                               tabPanel("Statistics"),
-                                                               tabPanel("Graph")))
+                                                               id = "authortab"))
                     ),
                               #verbatimTextOutput("test"),
                               htmlOutput("out")
@@ -122,7 +121,6 @@ server <- function(input, output, session) {
         if(input$maintabs == "Author") {
           list(
             # h3(paste("Average Book Rating for Author Selected:", author.avg.rank(input$author.name, input$year.range))),
-            if(input$authortab == "Graph"){
               list(
                 h3("Graph that connects author with the book"),
                 renderPlot(plot.author.to.books.network(input$author.name, input$year.range)),
@@ -135,7 +133,6 @@ server <- function(input, output, session) {
                 h3("Graph that connects authors with similar rating and category"),
                 renderPlot(plot.similar.rank.category.authors(input$author.name, input$year.range, input$top.n.values)) # Discuss removal
               )
-            }
           )
         }
       }

@@ -4,6 +4,8 @@ library(igraph)
 library(shiny)
 # library(readxl)
 library(openxlsx)
+library(hash)
+library(randomcoloR)
 
 dt.books <- read.xlsx("dt.books.clean.xlsx") 
 dt.books <- dt.books[,c("title", "authors", "categories", "published_year", "average_rating")]
