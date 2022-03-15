@@ -23,11 +23,20 @@ ui <- fluidPage(theme = shinytheme("superhero"),
                 sidebarLayout(
                     #Sidebar
                     sidebarPanel(
+                      conditionalPanel(
+                        condition = "input.maintabs == 'General'",
                         radioButtons("bar.chart", h4("Statistics by:"),
                                      c("Year" = "chart.year",
                                        "Category" = "chart.category",
                                        "Author" = "chart.author",
-                                       "Book" = "chart.book")),
+                                       "Book" = "chart.book"))
+                      ),
+                      conditionalPanel(
+                        condition = "input.maintabs == 'Author'",
+                        selectInput("author.name",
+                                    h4("Select author"),
+                                    NULL)
+                      ),
                         sliderInput("top.n.values",
                                     h4("Top N"),
                                     value = 5,
@@ -39,9 +48,6 @@ ui <- fluidPage(theme = shinytheme("superhero"),
                                     min = 1850, 
                                     max = 2020, 
                                     value = c(1850, 2020)),
-                        selectInput("author.name",
-                                    h4("Select author"),
-                                    NULL)
                     ),
                     #Tabs
                     mainPanel(tabsetPanel(type = "tabs",
