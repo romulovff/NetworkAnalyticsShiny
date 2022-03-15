@@ -47,3 +47,4 @@ dt.colors.avg.rating <- data.frame(Col1=c(keys(dict.colors.rating)), Col2=c(valu
 save(dt.colors, file="books.RData") 
 save(dt.books, file="books.RData") 
 
+

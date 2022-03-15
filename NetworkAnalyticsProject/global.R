@@ -195,6 +195,18 @@ plot.similar.rating.network <- function(year.range, top.n.values) {
   #legend("bottom", legend=c(keys(dict.colors.rating))  , col = c(values(dict.colors.rating)) , bty = "n", pch=20 , pt.cex = 1, cex = 0.7, text.col="black", horiz=T , inset=c(0, -.15), xpd=TRUE)
 }
 
-load("books.RData")
+plot.co.authors.network <- function(top.n.values) {
+  dt.co.authors <- as.data.table(distinct(dt.books[,c("title","authors","categories","published_year","average_rating")]))
+  dt.co.authors[, n_coauthors := .N-1, by = list(title, published_year, average_rating)]
+  dt.co.authors <- dt.co.authors[dt.co.authors$n_coauthors != 0 & dt.co.authors$title %in% unique(unique(dt.co.authors, by=c("title","categories","published_year"))[order(-average_rating)][1:top.n.values]$title)]
+  dt.cowritten.books <- dt.co.authors[, list(title = unique(title), type = FALSE)]
+  dt.cowritters <- dt.co.authors[, list(title = unique(authors), type = TRUE)]
+  dt.vertices <- rbind(dt.cowritten.books, dt.cowritters)
+  g <- graph.data.frame(dt.co.authors, directed = FALSE, vertices = dt.vertices)
+  g.coauthors <- bipartite.projection(g)$proj2
+  plot(g.coauthors)
+}
+  
+  load("books.RData")
 
 

@@ -112,7 +112,9 @@ server <- function(input, output, session) {
               h3(print("Authors connected if books written are of the same category")),
               renderPlot(plot.similar.category.network(input$year.range, input$top.n.values)),
               h3(print("Authors connected if similar rating")),
-              renderPlot(plot.similar.rating.network(input$year.range, input$top.n.values))
+              renderPlot(plot.similar.rating.network(input$year.range, input$top.n.values)),
+              h3(print("Authors connected if co-written a book")),
+              renderPlot(plot.co.authors.network(input$top.n.values))
             )
           }
         }
