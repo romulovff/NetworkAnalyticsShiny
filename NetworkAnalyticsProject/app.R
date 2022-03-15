@@ -129,7 +129,6 @@ server <- function(input, output, session) {
             list(
               h3(print("Authors connected if books written are of the same category")),
               renderPlot(plot.similar.category.network(input$year.range, input$top.n.values, input$switch.value)),
-              h5("Graph that connects author with the book"),
               h3(print("Authors connected if similar rating")),
               renderPlot(plot.similar.rating.network(input$year.range, input$top.n.values, input$switch.value)),
               h3(print("Authors connected if co-written a book")),
