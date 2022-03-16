@@ -176,7 +176,7 @@ plot.similar.category.network <- function(year.range, top.n.values, switch.value
     text(-1.5, 1.5, paste("Average clustering coefficient: ",get.clusteringcoef(g.categories)), cex = 0.65, col = "black")
   }
   legend(x = "bottomleft",
-         inset = c(-0.15, 0),
+         inset = c(-0.05, -0.2),
          legend = c(keys(dict.colors.categories)) , 
          lty = c(1, 2),
          col = c(values(dict.colors.categories)),
@@ -207,7 +207,7 @@ plot.similar.rating.network <- function(year.range, top.n.values, switch.value) 
     text(-1.5, 1.5, paste("Average clustering coefficient: ",get.clusteringcoef(g.rating)), cex = 0.65, col = "black")
   }
   legend(x = "bottomleft",
-         inset = c(-0.15, 0),
+         inset = c(-0.05, -0.2),
          legend = c(keys(dict.colors.rating)) , 
          lty = c(1, 2),
          col = c(values(dict.colors.rating)),
@@ -236,7 +236,21 @@ plot.co.authors.network <- function(year.range, top.n.values, switch.value) {
     text(-1.5, 1.5, paste("Average clustering coefficient: ",get.clusteringcoef(g.coauthors)), cex = 0.65, col = "black")
   }
 }
-  
-  load("books.RData")
+
+plot.co.authors <- function(author.name, year.range) {
+  dt.books.range <- filter(dt.books, published_year >= min(year.range) & published_year <= max(year.range))
+  dt.co.authors <- as.data.table(distinct(dt.books.range[,c("title","authors","categories","published_year","average_rating")]))
+  dt.co.authors[, n_coauthors := .N-1, by = list(title, published_year, average_rating)]
+  dt.co.authors <- dt.co.authors[dt.co.authors$n_coauthors != 0 & dt.co.authors$title %in% unique(unique(dt.co.authors, by=c("title","categories","published_year"))$title)]
+  dt.cowritten.books <- dt.co.authors[, list(title = unique(title), type = FALSE)]
+  dt.cowritters <- dt.co.authors[, list(title = unique(authors), type = TRUE)]
+  dt.vertices <- rbind(dt.cowritten.books, dt.cowritters)
+  g <- graph.data.frame(dt.co.authors, directed = FALSE, vertices = dt.vertices)
+  g.coauthors <- bipartite.projection(g)$proj2
+  g.coauthors.author <- induced_subgraph(g.coauthors, ego(g.coauthors, 1, author.name)[[1]])
+  plot(g.coauthors.author)
+}
+
+load("books.RData")
 
 

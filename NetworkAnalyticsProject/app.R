@@ -170,8 +170,8 @@ server <- function(input, output, session) {
         renderPlot(plot.similar.rank.authors(input$author.name, input$year.range, input$top.n.values)),
         h3("Graph that connect authors with similar category"),
         renderPlot(plot.similar.category.authors(input$author.name, input$year.range, input$top.n.values)),
-        h3("Graph that connects authors with similar rating and category"),
-        renderPlot(plot.similar.rank.category.authors(input$author.name, input$year.range, input$top.n.values)) # Discuss removal
+        h3("Authors connected if co-written a book"),
+        renderPlot(plot.co.authors(input$author.name, input$year.range))
       )
     )
   )
