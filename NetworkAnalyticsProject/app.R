@@ -22,49 +22,53 @@ ui <- dashboardPage(
   dashboardHeader(title = "Book Network Analysis"),
   dashboardSidebar(
     sidebarMenu(id = "sidebarid",
-    menuItem("About Me", tabName = "aboutme"),
-    menuItem("General", tabName = "general",
-             menuSubItem("Statistics", tabName = "statistics"), 
-             menuSubItem("Graph", tabName = "graph")
-             ),
-    menuItem("Author", tabName = "author"),
-      conditionalPanel(
-        'input.sidebarid == "statistics"',
-        awesomeRadio(
-          inputId = "bar.chart",
-          label = h4("Statistics by:"), 
-          choices = c("Year" = "chart.year",
-                      "Category" = "chart.category",
-                      "Author" = "chart.author",
-                      "Book" = "chart.book"),
-          selected = "chart.year"
-        )
-      ),
-    conditionalPanel(
-      'input.sidebarid == "author"',
-        selectInput("author.name",
-                    h4("Select author"),
-                    NULL)
-      ),
-      sliderInput("top.n.values",
-                  h4("Top N"),
-                  value = 5,
-                  step = 5,
-                  min = 5,
-                  max = 50),
-      sliderInput("year.range", 
-                  label = h4("Year Range"), 
-                  min = 1850, 
-                  max = 2020, 
-                  value = c(1850, 2020)),
-      conditionalPanel(
-        condition = "input.sidebarid == 'graph'",
-        switchInput(
-          inputId = "switch.value",
-          label = "Network Exploration", 
-          labelWidth = "80px"
-        )
-      )
+                menuItem("About Me", tabName = "aboutme"),
+                menuItem("General", tabName = "general",
+                         menuSubItem("Statistics", tabName = "statistics"), 
+                         menuSubItem("Graph", tabName = "graph")
+                ),
+                menuItem("Author", tabName = "author"),
+                conditionalPanel(
+                  'input.sidebarid == "statistics"',
+                  awesomeRadio(
+                    inputId = "bar.chart",
+                    label = h4("Statistics by:"), 
+                    choices = c("Year" = "chart.year",
+                                "Category" = "chart.category",
+                                "Author" = "chart.author",
+                                "Book" = "chart.book"),
+                    selected = "chart.year"
+                  )
+                ),
+                conditionalPanel(
+                  'input.sidebarid == "author"',
+                  selectInput("author.name",
+                              h4("Select author"),
+                              NULL)
+                ),
+                conditionalPanel(
+                  "input.sidebarid == 'statistics' || input.sidebarid == 'graphs' || input.sidebarid == 'author'",  
+                  sliderInput("top.n.values",
+                              h4("Top N"),
+                              value = 5,
+                              step = 5,
+                              min = 5,
+                              max = 50),
+                  sliderInput("year.range", 
+                              label = h4("Year Range"), 
+                              min = 1850, 
+                              max = 2020, 
+                              value = c(1850, 2020)),
+                ),
+    
+                conditionalPanel(
+                  "input.sidebarid == 'graph'",
+                  switchInput(
+                    inputId = "switch.value",
+                    label = "Network Exploration", 
+                    labelWidth = "80px"
+                  )
+                )
     )
   ),
   dashboardBody(
@@ -85,7 +89,8 @@ ui <- dashboardPage(
               ")
       ),
       tabItem(tabName = "statistics",
-              uiOutput("general.statistics")),
+            uiOutput("general.statistics")
+      ),
       tabItem(tabName = "graph",
               uiOutput("general.graph")),
       tabItem(tabName = "author",
@@ -96,27 +101,31 @@ ui <- dashboardPage(
 
 # Define server
 server <- function(input, output, session) {
-  output$test <- renderText({
-    paste(input$top.authors.volume, input$top.authors.ranking)
-    paste("Average Book Rating for Author Selected:", author.avg.rank(input$author.name))
-  })
-  
   output$general.statistics <- renderUI(
     list(
       if(input$bar.chart == "chart.year"){
         list(
-          h3(paste0("Number of Books: ", get.books.count.year.range(input$year.range))),
-          renderPlot(plot.books.published.by.year(input$year.range)),
-          h3(paste0("Number of Distinct Authors: ", get.authors.count.year.range(input$year.range))),
-          renderPlot(plot.distinct.authors.by.year(input$year.range))
+          infoBox(
+            "Number of books", get.books.count.year.range(input$year.range), width = 6
+          ),
+          infoBox(
+            "Number of authors", get.authors.count.year.range(input$year.range), width = 6
+          ),
+          box(title = "Number of books published per year", 
+              renderPlot(plot.books.published.by.year(input$year.range))
+          ),
+          box(title = "Number of authors per year",
+              renderPlot(plot.distinct.authors.by.year(input$year.range)))
         )
       },
       if(input$bar.chart == "chart.author"){
         list(
-          h3("Number of Authors per Book Distribution: "),
-          renderPlot(plot.books.by.authornumber(input$year.range)),
-          h3(paste0(input$top.n.values, " Authors With Most Books")),
-          renderTable(get.authors.most.books(input$top.n.values, input$year.range))
+          box(title = "Number of Authors per Book Distribution", 
+              renderPlot(plot.books.by.authornumber(input$year.range))
+          ),
+          box(title = paste0(input$top.n.values, " Authors With Most Books"),
+              renderTable(get.authors.most.books(input$top.n.values, input$year.range))
+          )
         )
       },
       if(input$bar.chart == "chart.book"){
