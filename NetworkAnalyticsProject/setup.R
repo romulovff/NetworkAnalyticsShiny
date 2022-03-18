@@ -166,16 +166,14 @@ for (category in unique(dt.books$categories)) {
   dict.colors.categories[[category]] <- as.character(randomColor(luminosity="bright"))
 }
 dt.colors <- data.frame(Col1=c(keys(dict.colors.categories)), Col2=c(values(dict.colors.categories)),
-                 stringsAsFactors=FALSE)
+                        stringsAsFactors=FALSE)
 
 dict.colors.rating <- hash()
 for (rating_class in unique(dt.books$avg_rating_class)) {
   dict.colors.rating[[rating_class]] <- as.character(randomColor(luminosity="bright"))
 }
 dt.colors.avg.rating <- data.frame(Col1=c(keys(dict.colors.rating)), Col2=c(values(dict.colors.rating)),
-                        stringsAsFactors=FALSE)
+                                   stringsAsFactors=FALSE)
 
 save(dt.colors, file="books.RData") 
 save(dt.books, file="books.RData") 
-
-

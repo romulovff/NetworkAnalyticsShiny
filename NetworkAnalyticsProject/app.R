@@ -47,7 +47,7 @@ ui <- dashboardPage(
                               NULL)
                 ),
                 conditionalPanel(
-                  "input.sidebarid == 'statistics' || input.sidebarid == 'graphs' || input.sidebarid == 'author'",  
+                  "input.sidebarid == 'statistics' || input.sidebarid == 'graph' || input.sidebarid == 'author'",  
                   sliderInput("top.n.values",
                               h4("Top N"),
                               value = 5,
