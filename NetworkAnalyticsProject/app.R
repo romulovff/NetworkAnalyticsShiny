@@ -196,6 +196,15 @@ server <- function(input, output, session) {
   output$author <- renderUI(
     list(
       list(
+        infoBox(
+          "Averate rating", author.avg.rank(input$author.name, input$year.range), width = 4
+        ),
+        infoBox(
+          "Number of books", author.n.books(input$author.name, input$year.range), width = 4
+        ),
+        infoBox(
+          "Top category", author.top.category(input$author.name, input$year.range), width = 4
+        ),
         box(title = paste0(input$author.name, "'s books"),
             renderPlot(plot.author.to.books.network(input$author.name, input$year.range))
         ),

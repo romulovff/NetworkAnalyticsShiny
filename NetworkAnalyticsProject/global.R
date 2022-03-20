@@ -13,6 +13,18 @@ author.avg.rank <- function(author.name, year.range) {
   round(average_rating_author, 3)
 }
 
+author.n.books <- function(author.name, year.range) {
+  dt.books.range <- filter(dt.books, published_year >= min(year.range) & published_year <= max(year.range))
+  dt.author <- dt.books.range[dt.books.range$authors == author.name, ]
+  n_books <- nrow(dt.author)
+}
+
+author.top.category <- function(author.name, year.range) {
+  dt.books.range <- filter(dt.books, published_year >= min(year.range) & published_year <= max(year.range))
+  dt.author <- dt.books.range[dt.books.range$authors == author.name, ]
+  n_books <- dt.author$main_category[1]
+}
+
 get.unique.authors <- function() {
   dt.authors.books <- dt.books %>% count(authors, sort = TRUE)
   unique(dt.authors.books$authors)
