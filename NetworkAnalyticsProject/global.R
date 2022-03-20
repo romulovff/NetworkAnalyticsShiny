@@ -30,6 +30,11 @@ get.unique.authors <- function() {
   unique(dt.authors.books$authors)
 }
 
+get.unique.categories <- function() {
+  dt.categories.books <- dt.books %>% count(categories, sort = TRUE)
+  unique(dt.categories.books$categories)
+}
+
 get.authors.most.books <- function(number.authors, year.range) {
   dt.books.range <- filter(dt.books, published_year >= min(year.range) & published_year <= max(year.range))
   dt.authors.books <- dt.books.range %>% count(authors, sort = TRUE)
@@ -295,6 +300,69 @@ plot.co.authors <- function(author.name, year.range, switch.value) {
   print(paste("Average clustering coefficient: ", round(get.clusteringcoef(g.coauthors.author), digits = 2)))
   print(paste("Average degree centrality: ", round(mean(node.degrees), digits = 2)))
   print(paste("Average eigenvector centrality: ", centr_eigen(g.coauthors.author)$value))
+}
+
+# HOMOPHILY
+print.homophily <- function(category_name) {
+  #All authors
+  dt.books <- na.omit(dt.books)
+  dt.books <- data.table(dt.books)[sample(.N, 500)]
+  dt.books.cat <- dt.books[dt.books$categories == category_name,]
+  
+  dt.books.unique.restricted <-data.table(dt.books.cat[,list(authors,n_books_class,avg_rating_individual_class)])
+  dt.books.cat.unique <- dt.books.unique.restricted[!duplicated(dt.books.unique.restricted$authors), ]
+  
+  all.authors <- dt.books.cat.unique[,list(name=unique(authors),type=TRUE)]
+  all.books <- dt.books.cat.unique[,list(name=unique(n_books_class),type=FALSE)]
+  all.vertices <- rbind(all.authors, all.books)
+  
+  g <- graph.data.frame(dt.books.cat.unique[,list(authors,n_books_class)],directed=FALSE, vertices=all.vertices)
+  g.authors.books <- bipartite.projection(g)$proj2
+  
+  #Obtain list of connections  
+  edgelist <- get.data.frame(g.authors.books)
+  colnames(edgelist) <- c('author1','author2')
+  edgelist <- edgelist[,1:2]
+  edgelist1 <- edgelist[,1:2]
+  author1.rating <- dt.books.cat.unique[authors %in% edgelist[, "author1"]][,list(authors,avg_rating_individual_class)]
+  
+  rating1 <- vector()
+  for (author in edgelist$author1) {
+    the_author <- author1.rating[authors %in% author, ]
+    rating <- the_author$avg_rating_individual_class[1]
+    rating1 <- c(rating1, rating)
+  }
+  edgelist1$author1_rating <- rating1
+  
+  #Obtain authors rating
+  rating1 <- vector()
+  for (author in edgelist$author1) {
+    the_author <- dt.books.cat[dt.books.cat$authors %in% author, ]
+    rating <- the_author$avg_rating_individual_class[1]
+    rating1 <- c(rating1, rating)
+  }
+  edgelist$author1_rating <- rating1
+  
+  rating2 <- vector()
+  for (author in edgelist$author2) {
+    the_author <- dt.books.cat[dt.books.cat$authors %in% author, ]
+    rating <- the_author$avg_rating_individual_class[1]
+    rating2 <- c(rating2, rating)
+  } 
+  edgelist$author2_rating <- rating2
+  
+  #See when rating columns are equal
+  validation <- edgelist[,3] == edgelist[,4]
+  edgelist$validation <- validation
+  
+  #All invites & Similar gender invites
+  all.rows <- length(edgelist$validation)
+  rows.true <-  edgelist[edgelist$validation == TRUE,]
+  equal.rows <- length(rows.true$validation)
+  
+  #Homophily
+  result <- equal.rows/all.rows
+  print(result)
 }
 
 load("books.RData")

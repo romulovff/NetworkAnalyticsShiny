@@ -15,8 +15,9 @@ ui <- dashboardPage(
     sidebarMenu(id = "sidebarid",
                 menuItem("About Me", tabName = "aboutme"),
                 menuItem("General", tabName = "general",
-                         menuSubItem("Statistics", tabName = "statistics"), 
-                         menuSubItem("Graph", tabName = "graph")
+                         menuSubItem("Descriptive Statistics", tabName = "statistics"), 
+                         menuSubItem("Network Exploration", tabName = "graph"),
+                         menuSubItem("Network Analysis", tabName = "homophily")
                 ),
                 menuItem("Author", tabName = "author"),
                 conditionalPanel(
@@ -31,12 +32,21 @@ ui <- dashboardPage(
                     selected = "chart.year"
                   )
                 ),
+                
+                conditionalPanel(
+                  'input.sidebarid == "homophily"',
+                  selectInput("category.name",
+                              h4("Select category"),
+                              NULL)
+                ),
+                
                 conditionalPanel(
                   'input.sidebarid == "author"',
                   selectInput("author.name",
                               h4("Select author"),
                               NULL)
                 ),
+                
                 conditionalPanel(
                   "input.sidebarid == 'statistics' || input.sidebarid == 'graph' || input.sidebarid == 'author'",  
                   sliderInput("top.n.values",
@@ -71,15 +81,29 @@ ui <- dashboardPage(
             uiOutput("general.statistics")
       ),
       tabItem(tabName = "graph",
-              uiOutput("general.graph")),
+              uiOutput("general.graph")
+      ),
       tabItem(tabName = "author",
-              uiOutput("author"))
+              uiOutput("author")
+      ),
+      tabItem(tabName = "homophily",
+              uiOutput("homophily")
+      )
     )
   )
 )
 
 # Define server
 server <- function(input, output, session) {
+  
+  output$homophily <- renderUI(
+    list(
+      infoBox(
+        "Homophily", print.homophily(input$category.name), width = 4
+      )
+    )
+  )
+  
   
   output$aboutme <- renderUI(
     HTML(
@@ -229,12 +253,19 @@ server <- function(input, output, session) {
       )
     )
   )
-  
+  observe({
   updateSelectInput(
     session,
     inputId = "author.name",
     choices = get.unique.authors()
   )
+  updateSelectInput(
+    session,
+    inputId = "category.name",
+    choices = get.unique.categories()
+  )
+  })
+  
 }
 
 # Run the application 
