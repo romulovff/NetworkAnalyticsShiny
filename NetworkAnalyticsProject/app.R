@@ -53,7 +53,7 @@ ui <- dashboardPage(
                 ),
     
                 conditionalPanel(
-                  "input.sidebarid == 'graph'",
+                  "input.sidebarid == 'graph' || input.sidebarid == 'author'",
                   switchInput(
                     inputId = "switch.value",
                     label = "Network Exploration", 
@@ -65,19 +65,7 @@ ui <- dashboardPage(
   dashboardBody(
     tabItems(
       tabItem(tabName = "aboutme",
-              h1("This Shinny App aims at analyzing authors and their respective books over different dimensions such as rankings, categories, and number of books.
-              The database used to implement such analyses was extracted from Kaggle and can be found here: https://www.kaggle.com/dylanjcastillo/7k-books-with-metadata.
-              On that, we performed the following data cleaning steps:
-                1.	Reduced the number of categories to only appear the top 50
-              2.	Normalized the names of the authors and books
-              3.	Separated the books with co-authors in different rows, one for each
-              4.	Omitted the rows with null information
-              5.	Dealt with special characters such as Russian names
-              We separated the information through two different tabs:
-                1.	General -Performs descriptive statistics, network exploration and network analysis on the overall data
-              2.	Author - Performs both descriptive statistics and network exploration on a selected author 
-              The user can interact with most graphs for a clearer and more concise visualization.
-              ")
+              uiOutput("aboutme")
       ),
       tabItem(tabName = "statistics",
             uiOutput("general.statistics")
@@ -92,6 +80,39 @@ ui <- dashboardPage(
 
 # Define server
 server <- function(input, output, session) {
+  
+  output$aboutme <- renderUI(
+    HTML(
+      "
+      <h4>This Shinny App aims at analyzing authors and their respective books over different dimensions such as rankings, categories, and number of books.</h4>
+      <h4>The database used to implement such analyses was extracted from Kaggle and can be found <a href=https://www.kaggle.com/dylanjcastillo/7k-books-with-metadata>here</a>.</h4>
+      <h4>On that, we performed the following data cleaning steps:</h4>
+      <ol>
+        <li>Reduced the number of categories to only appear the top 50</li>
+        <li>Normalized the names of the authors and books</li>
+        <li>Separated the books with co-authors in different rows, one for each</li>
+        <li>Omitted the rows with null information</li>
+        <li>Dealt with special characters such as Russian names</li>
+      </ol><br>
+      <h4>We separated the information through two different tabs:</h4>
+      <ol>
+        <li><b>General -</b> Performs descriptive statistics, network exploration and network analysis on the overall data</li>
+        <li><b>Author -</b> Performs both descriptive statistics and network exploration on a selected author</li>
+      </ol>
+      <h4>The user can interact with most graphs for a clearer and more concise visualization.</h4><br>
+      <h4>This project was developed by:</h4>
+      <ol>
+        <li>Francisco Perestrello - 39001</li>
+        <li>Maria Ferreira - 50465</li>
+        <li>Monica Pinto - 39349</li>
+        <li>Romulo Filho - 50530</li>
+        <li>Vasco Grincho - 39357</li>
+      </ol>
+      "
+    )
+  )
+  
+  
   output$general.statistics <- renderUI(
     list(
       if(input$bar.chart == "chart.year"){
@@ -121,18 +142,25 @@ server <- function(input, output, session) {
       },
       if(input$bar.chart == "chart.book"){
         list(
-          h3(paste0("Average Book Rating: ", get.average.book.rating(input$year.range))),
-          renderPlot(plot.books.by.ranking(input$year.range)),
-          h3(paste0(input$top.n.values, " Books With Highest Rating")),
-          renderTable(get.books.highest.rating(input$top.n.values, input$year.range))
+          infoBox(
+            "Average Book Rating", get.average.book.rating(input$year.range), width = 12
+          ),
+          box(title = "Number of Books per Rating", 
+              renderPlot(plot.books.by.ranking(input$year.range))
+          ),
+          box(title = paste0(input$top.n.values, " Books with Highest Rating"), 
+              renderTable(get.books.highest.rating(input$top.n.values, input$year.range))
+          )
         )
       },
       if(input$bar.chart == "chart.category"){
         list(
-          h3(paste0(input$top.n.values,"Categories With Most Books")),
-          renderTable(get.categories.most.books(input$top.n.values, input$year.range)),
-          h3("Distinct Authors for each Category"),
-          renderTable(get.distinct.author.per.category(input$year.range))
+          box(title = "Number of Authors for each category",
+              renderTable(get.distinct.author.per.category(input$year.range, input$top.n.values))
+          ),
+          box(title = paste0(input$top.n.values, " Categories with Most Books"), 
+              renderTable(get.categories.most.books(input$top.n.values, input$year.range))
+          )
         )
       }
     )
@@ -140,21 +168,24 @@ server <- function(input, output, session) {
   
   output$general.graph <- renderUI(
     list(
-      h3(print("Authors connected if books written are of the same category")),
-      renderPlot(plot.similar.category.network(input$year.range, input$top.n.values, input$switch.value)),
-      if(input$switch.value == TRUE) {
-        renderPrint(plot.similar.category.network(input$year.range, input$top.n.values, input$switch.value))
-      },
-      h3(print("Authors connected if similar rating")),
-      renderPlot(plot.similar.rating.network(input$year.range, input$top.n.values, input$switch.value)),
-      if(input$switch.value == TRUE) {
-        renderPrint(plot.similar.rating.network(input$year.range, input$top.n.values, input$switch.value))
-      },
-      h3(print("Authors connected if co-written a book")),
-      renderPlot(plot.co.authors.network(input$year.range, input$top.n.values, input$switch.value)),
-      if(input$switch.value == TRUE) {
-        renderPrint(plot.co.authors.network(input$year.range, input$top.n.values, input$switch.value))
-      }
+      box(title = "Authors connected if books written are of the same category",
+          renderPlot(plot.similar.category.network(input$year.range, input$top.n.values, input$switch.value)),
+          if(input$switch.value == TRUE) {
+            renderPrint(plot.similar.category.network(input$year.range, input$top.n.values, input$switch.value))
+          },
+      ),
+      box(title = "Authors connected if similar rating",
+          renderPlot(plot.similar.rating.network(input$year.range, input$top.n.values, input$switch.value)),
+          if(input$switch.value == TRUE) {
+            renderPrint(plot.similar.rating.network(input$year.range, input$top.n.values, input$switch.value))
+          },
+      ),
+      box(title = "Authors connected if co-written a book",
+          renderPlot(plot.co.authors.network(input$year.range, input$top.n.values, input$switch.value)),
+          if(input$switch.value == TRUE) {
+            renderPrint(plot.co.authors.network(input$year.range, input$top.n.values, input$switch.value))
+          }
+      )
     )
   )
   
@@ -162,16 +193,24 @@ server <- function(input, output, session) {
     list(
       # h3(paste("Average Book Rating for Author Selected:", author.avg.rank(input$author.name, input$year.range))),
       list(
-        h3("Graph that connects author with the book"),
-        renderPlot(plot.author.to.books.network(input$author.name, input$year.range)),
-        h3("Graph that connects author with categories"),
-        renderPlot(plot.author.to.categories.network(input$author.name, input$year.range)),
-        h3("Graph that connect authors with similar rating"),
-        renderPlot(plot.similar.rank.authors(input$author.name, input$year.range, input$top.n.values)),
-        h3("Graph that connect authors with similar category"),
-        renderPlot(plot.similar.category.authors(input$author.name, input$year.range, input$top.n.values)),
-        h3("Authors connected if co-written a book"),
-        renderPlot(plot.co.authors(input$author.name, input$year.range))
+        box(title = "Graph that connects author with the book",
+            renderPlot(plot.author.to.books.network(input$author.name, input$year.range))
+        ),
+        box(title = "Graph that connects author with categories",
+            renderPlot(plot.author.to.categories.network(input$author.name, input$year.range))
+        ),
+        box(title = "Graph that connects authors with similar rating",
+            renderPlot(plot.similar.rank.authors(input$author.name, input$year.range, input$top.n.values))
+        ),
+        box(title = "Graph that connects authors with same category",
+            renderPlot(plot.similar.category.authors(input$author.name, input$year.range, input$top.n.values))
+        ),
+        box(title = "Authors connected if co-wrriten a book",
+            renderPlot(plot.co.authors(input$author.name, input$year.range, input$switch.value)),
+            if(input$switch.value == TRUE) {
+              renderPrint(plot.co.authors(input$author.name, input$year.range, input$switch.value))
+            }
+        )
       )
     )
   )

@@ -37,6 +37,7 @@ get.categories.most.books <- function(number.categories, year.range) {
 
 get.books.highest.rating <- function(number.books, year.range) {
   dt.books.range <- filter(dt.books, published_year >= min(year.range) & published_year <= max(year.range))
+  dt.books.range <- dt.books.range[,c("title", "authors", "categories", "published_year", "average_rating")]
   dt.books.range %>% slice_max(average_rating, n = number.books, with_ties = FALSE)
 }
 
@@ -50,12 +51,12 @@ get.authors.count.year.range <- function(year.range) {
   length(unique(dt.books.range$authors))
 }
 
-get.distinct.author.per.category <- function(year.range) {
+get.distinct.author.per.category <- function(year.range, top.n.values) {
   dt.books.range <- filter(dt.books, published_year >= min(year.range) & published_year <= max(year.range))
   dt.category.number <- aggregate(data = dt.books.range,
                             authors ~ categories,
                             function(authors) length(unique(authors)))
-  dt.category.number[order(-dt.category.number$authors), ]
+  dt.category.number[order(-dt.category.number$authors), ][1:top.n.values, ]
 }
 
 get.clusteringcoef <- function(g) {
@@ -166,23 +167,30 @@ plot.similar.category.network <- function(year.range, top.n.values, switch.value
   dt.vertices <- rbind(dt.authors, dt.categories)
   g <- graph.data.frame(dt.n.authors.published[c("authors", "categories")], directed = FALSE, vertices = dt.vertices)
   g.categories <- bipartite.projection(g)$proj2
-  print("Degree centrality of each node")
-  node.degress <- degree(g.categories)
-  print(node.degress)
-  print(paste("Average degree centrality: ", mean(node.degress)))
-  print(paste("Average eigenvector centrality: ", eigen_centrality(g.categories)))
-  print(paste("Average clustering coefficient: ", get.clusteringcoef(g.categories)))
-  plot(g.categories, edge.color = dt.books.range$colors)
-  legend(x = "bottomleft",
-         inset = c(-0.05, -0.2),
-         legend = c(keys(dict.colors.categories)), 
-         lty = c(1, 2),
-         col = c(values(dict.colors.categories)),
-         lwd = 2,
-         pch = 20,
-         cex = 0.7,
-         bty = "n",
-         xpd = TRUE)
+  node.degrees <- degree(g.categories)
+  max.degree <- max(node.degrees)
+  if(switch.value == TRUE) {
+    interval = seq(from = 0, to = max.degree, by = 1)
+    hist(node.degrees, breaks = interval)
+  } else {
+    plot(g.categories, edge.color = dt.books.range$colors)
+    legend(x = "bottomleft",
+           inset = c(-0.05, -0.2),
+           legend = c(keys(dict.colors.categories)), 
+           lty = c(1, 2),
+           col = c(values(dict.colors.categories)),
+           lwd = 2,
+           pch = 20,
+           cex = 0.7,
+           bty = "n",
+           xpd = TRUE)
+  } 
+  print(paste("Average path length: ", round(mean_distance(g.categories), digits = 2)))
+  print(paste("Diameter: ", diameter(g.categories)))
+  print(paste("Average degree centrality: ", round(mean(node.degrees), digits = 2)))
+  print(paste("Average eigenvector centrality: ", centr_eigen(g.categories)$value))
+  print(paste("Average clustering coefficient: ", round(get.clusteringcoef(g.categories), digits = 2)))
+  
 }
 
 plot.similar.rating.network <- function(year.range, top.n.values, switch.value) {
@@ -197,23 +205,30 @@ plot.similar.rating.network <- function(year.range, top.n.values, switch.value) 
   dt.vertices <- rbind(dt.authors, dt.rating)
   g <- graph.data.frame(dt.n.authors.published[c("authors", "avg_rating_class")], directed = FALSE, vertices = dt.vertices)
   g.rating <- bipartite.projection(g)$proj2
-  print("Degree centrality of each node")
-  node.degress <- degree(g.rating)
-  print(node.degress)
-  print(paste("Average degree centrality: ", mean(node.degress)))
-  print(paste("Average eigenvector centrality: ", eigen_centrality(g.rating)))
-  print(paste("Average clustering coefficient: ", get.clusteringcoef(g.rating)))
-  plot(g.rating, edge.color = dt.books.range$colors)
-  legend(x = "bottomleft",
-         inset = c(-0.05, -0.2),
-         legend = c(keys(dict.colors.rating)), 
-         lty = c(1, 2),
-         col = c(values(dict.colors.rating)),
-         lwd = 2,
-         pch = 20,
-         cex = 0.7,
-         bty = "n",
-         xpd = TRUE)
+  node.degrees <- degree(g.rating)
+  max.degree <- max(node.degrees)
+  if(switch.value == TRUE) {
+    interval = seq(from = 0, to = max.degree, by = 1)
+    hist(node.degrees, breaks = interval)
+  } else {
+    plot(g.rating, edge.color = dt.books.range$colors)
+    legend(x = "bottomleft",
+           inset = c(-0.05, -0.2),
+           legend = c(keys(dict.colors.rating)), 
+           lty = c(1, 2),
+           col = c(values(dict.colors.rating)),
+           lwd = 2,
+           pch = 20,
+           cex = 0.7,
+           bty = "n",
+           xpd = TRUE)
+  }
+  print(paste("Average path length: ", round(mean_distance(g.rating), digits = 2)))
+  print(paste("Diameter: ", diameter(g.rating)))
+  print(paste("Average degree centrality: ", round(mean(node.degrees), digits = 2)))
+  print(paste("Average eigenvector centrality: ", centr_eigen(g.rating)$value))
+  print(paste("Average clustering coefficient: ", round(get.clusteringcoef(g.rating), digits = 2)))
+  
 }
 
 plot.co.authors.network <- function(year.range, top.n.values, switch.value) {
@@ -226,16 +241,24 @@ plot.co.authors.network <- function(year.range, top.n.values, switch.value) {
   dt.vertices <- rbind(dt.cowritten.books, dt.cowritters)
   g <- graph.data.frame(dt.co.authors, directed = FALSE, vertices = dt.vertices)
   g.coauthors <- bipartite.projection(g)$proj2
-  print("Degree centrality of each node")
-  node.degress <- degree(g.coauthors)
-  print(node.degress)
-  print(paste("Average degree centrality: ", mean(node.degress)))
-  print(paste("Average eigenvector centrality: ", eigen_centrality(g.coauthors)))
-  print(paste("Average clustering coefficient: ", get.clusteringcoef(g.coauthors)))
-  plot(g.coauthors)
+  node.degrees <- degree(g.coauthors)
+  max.degree <- max(node.degrees)
+  if(switch.value == TRUE) {
+    interval = seq(from = 0, to = max.degree, by = 1)
+    hist(node.degrees, breaks = interval)
+  } else {
+    plot(g.coauthors)
+  }
+
+  print(paste("Average path length: ", round(mean_distance(g.coauthors), digits = 2)))
+  print(paste("Diameter: ", diameter(g.coauthors)))
+  print(paste("Average clustering coefficient: ", round(get.clusteringcoef(g.coauthors), digits = 2)))
+  print(paste("Average degree centrality: ", round(mean(node.degrees), digits = 2)))
+  print(paste("Average eigenvector centrality: ", centr_eigen(g.coauthors)$value))
+  
 }
 
-plot.co.authors <- function(author.name, year.range) {
+plot.co.authors <- function(author.name, year.range, switch.value) {
   dt.books.range <- filter(dt.books, published_year >= min(year.range) & published_year <= max(year.range))
   dt.co.authors <- as.data.table(distinct(dt.books[, c("title", "authors", "categories", "published_year", "average_rating")]))
   dt.co.authors[, n_coauthors := .N - 1, by = list(title, published_year, average_rating)]
@@ -247,7 +270,19 @@ plot.co.authors <- function(author.name, year.range) {
   g <- graph.data.frame(dt.co.authors, directed = FALSE, vertices = dt.vertices)
   g.coauthors <- bipartite.projection(g)$proj2
   g.coauthors.author <- induced_subgraph(g.coauthors, ego(g.coauthors, 1, author.name)[[1]])
-  plot(g.coauthors.author)
+  node.degrees <- degree(g.coauthors.author)
+  max.degree <- max(node.degrees)
+  if(switch.value == TRUE) {
+    interval = seq(from = 0, to = max.degree, by = 1)
+    hist(node.degrees, breaks = interval)
+  } else {
+    plot(g.coauthors.author)
+  }
+  print(paste("Average path length: ", round(mean_distance(g.coauthors.author), digits = 2)))
+  print(paste("Diameter: ", diameter(g.coauthors.author)))
+  print(paste("Average clustering coefficient: ", round(get.clusteringcoef(g.coauthors.author), digits = 2)))
+  print(paste("Average degree centrality: ", round(mean(node.degrees), digits = 2)))
+  print(paste("Average eigenvector centrality: ", centr_eigen(g.coauthors.author)$value))
 }
 
 load("books.RData")
