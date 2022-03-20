@@ -155,7 +155,7 @@ server <- function(input, output, session) {
       },
       if(input$bar.chart == "chart.category"){
         list(
-          box(title = "Number of Authors for each category",
+          box(title = paste0("Number of Authors for each top ", input$top.n.values, " category"),
               renderTable(get.distinct.author.per.category(input$year.range, input$top.n.values))
           ),
           box(title = paste0(input$top.n.values, " Categories with Most Books"), 
@@ -168,44 +168,50 @@ server <- function(input, output, session) {
   
   output$general.graph <- renderUI(
     list(
-      box(title = "Authors connected if books written are of the same category",
+      box(title = paste0("Top ",input$top.n.values, " Authors connected if books written are on the same category"),
           renderPlot(plot.similar.category.network(input$year.range, input$top.n.values, input$switch.value)),
           if(input$switch.value == TRUE) {
             renderPrint(plot.similar.category.network(input$year.range, input$top.n.values, input$switch.value))
           },
+          "The Top N Authors are choosen by the number of books they have written."
       ),
-      box(title = "Authors connected if similar rating",
+      box(title = paste0("Top ",input$top.n.values, " Authors connected if authors have a similar rating"),
           renderPlot(plot.similar.rating.network(input$year.range, input$top.n.values, input$switch.value)),
           if(input$switch.value == TRUE) {
             renderPrint(plot.similar.rating.network(input$year.range, input$top.n.values, input$switch.value))
           },
+          "The Top N Authors are choosen by the number of books they have written.",
+          "The similar rating was done through getting the average rating of each author by averaging all the ratings of their books. Then, these ratings were put into classes for a more efficient analysis."
       ),
-      box(title = "Authors connected if co-written a book",
+      box(title = paste0("Top ",input$top.n.values, " Authors connected if co-written a book"),
           renderPlot(plot.co.authors.network(input$year.range, input$top.n.values, input$switch.value)),
           if(input$switch.value == TRUE) {
             renderPrint(plot.co.authors.network(input$year.range, input$top.n.values, input$switch.value))
-          }
+          },
+          "The Top N Authors are choosen by their rating."
       )
     )
   )
   
   output$author <- renderUI(
     list(
-      # h3(paste("Average Book Rating for Author Selected:", author.avg.rank(input$author.name, input$year.range))),
       list(
-        box(title = "Graph that connects author with the book",
+        box(title = paste0(input$author.name, "'s books"),
             renderPlot(plot.author.to.books.network(input$author.name, input$year.range))
         ),
-        box(title = "Graph that connects author with categories",
+        box(title = paste0(input$author.name, "'s categories"),
             renderPlot(plot.author.to.categories.network(input$author.name, input$year.range))
         ),
-        box(title = "Graph that connects authors with similar rating",
-            renderPlot(plot.similar.rank.authors(input$author.name, input$year.range, input$top.n.values))
+        box(title = paste0("Connects ", input$author.name, " with others that have the same top category"),
+            renderPlot(plot.similar.category.authors(input$author.name, input$year.range, input$top.n.values)),
+            "The top category was obtained by counting the number of books on each one and choosing the one with the highest value.",
         ),
-        box(title = "Graph that connects authors with same category",
-            renderPlot(plot.similar.category.authors(input$author.name, input$year.range, input$top.n.values))
+        box(title = paste0("Connects ", input$author.name, " with others that have a similar rating"),
+            renderPlot(plot.similar.rank.authors(input$author.name, input$year.range, input$top.n.values)),
+            "The similar rating was done through getting the average rating of each author by averaging all the ratings of their books. Then, these ratings were put into classes for a more efficient analysis.",
+            "The classes are range from 0 until 5 with a width of 0.5."
         ),
-        box(title = "Authors connected if co-wrriten a book",
+        box(title = paste0("Connects ", input$author.name, " with others with whom he/she has co-written a book"),
             renderPlot(plot.co.authors(input$author.name, input$year.range, input$switch.value)),
             if(input$switch.value == TRUE) {
               renderPrint(plot.co.authors(input$author.name, input$year.range, input$switch.value))
