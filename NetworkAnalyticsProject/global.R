@@ -174,7 +174,6 @@ plot.similar.rank.category.authors <- function(author.name, year.range, top.n.va
 
 plot.similar.category.network <- function(year.range, top.n.values, switch.value) {
   dt.books.range <- filter(dt.books, published_year >= min(year.range) & published_year <= max(year.range))
-  dt.books.range$colors <- unname(setNames(dt.colors[, 2], dt.colors[, 1])[as.character(dt.books.range$categories)])
   dt.top.n.authors.published <- as.data.table(dt.books.range)
   dt.top.n.authors.published <- dt.top.n.authors.published[, n_books := .N, by = "authors"]
   top.n.authors.published <- unique(dt.top.n.authors.published[order(-n_books)]$authors)[1:top.n.values]
@@ -190,17 +189,7 @@ plot.similar.category.network <- function(year.range, top.n.values, switch.value
     interval = seq(from = 0, to = max.degree, by = 1)
     hist(node.degrees, breaks = interval)
   } else {
-    plot(g.categories, edge.color = dt.books.range$colors)
-    legend(x = "bottomleft",
-           inset = c(-0.05, -0.2),
-           legend = c(keys(dict.colors.categories)), 
-           lty = c(1, 2),
-           col = c(values(dict.colors.categories)),
-           lwd = 2,
-           pch = 20,
-           cex = 0.7,
-           bty = "n",
-           xpd = TRUE)
+    plot(g.categories)
   } 
   print(paste("Average path length: ", round(mean_distance(g.categories), digits = 2)))
   print(paste("Diameter: ", diameter(g.categories)))
@@ -212,7 +201,6 @@ plot.similar.category.network <- function(year.range, top.n.values, switch.value
 
 plot.similar.rating.network <- function(year.range, top.n.values, switch.value) {
   dt.books.range <- filter(dt.books, published_year >= min(year.range) & published_year <= max(year.range))
-  dt.books.range$colors <- unname(setNames(dt.colors.avg.rating[, 2], dt.colors.avg.rating[, 1])[as.character(dt.books.range$avg_rating_class)])
   dt.top.n.authors.published <- as.data.table(dt.books.range)
   dt.top.n.authors.published <- dt.top.n.authors.published[, n_books := .N, by = "authors"]
   top.n.authors.published <- unique(dt.top.n.authors.published[order(-n_books)]$authors)[1:top.n.values]
@@ -228,17 +216,7 @@ plot.similar.rating.network <- function(year.range, top.n.values, switch.value) 
     interval = seq(from = 0, to = max.degree, by = 1)
     hist(node.degrees, breaks = interval)
   } else {
-    plot(g.rating, edge.color = dt.books.range$colors)
-    legend(x = "bottomleft",
-           inset = c(-0.05, -0.2),
-           legend = c(keys(dict.colors.rating)), 
-           lty = c(1, 2),
-           col = c(values(dict.colors.rating)),
-           lwd = 2,
-           pch = 20,
-           cex = 0.7,
-           bty = "n",
-           xpd = TRUE)
+    plot(g.rating)
   }
   print(paste("Average path length: ", round(mean_distance(g.rating), digits = 2)))
   print(paste("Diameter: ", diameter(g.rating)))
@@ -319,7 +297,7 @@ print.homophily <- function(category_name) {
   g <- graph.data.frame(dt.books.cat.unique[,list(authors,n_books_class)],directed=FALSE, vertices=all.vertices)
   g.authors.books <- bipartite.projection(g)$proj2
   
-  #Obtain list of connections  
+  #Obtain list of connections
   edgelist <- get.data.frame(g.authors.books)
   colnames(edgelist) <- c('author1','author2')
   edgelist <- edgelist[,1:2]
@@ -348,7 +326,7 @@ print.homophily <- function(category_name) {
     the_author <- dt.books.cat[dt.books.cat$authors %in% author, ]
     rating <- the_author$avg_rating_individual_class[1]
     rating2 <- c(rating2, rating)
-  } 
+  }
   edgelist$author2_rating <- rating2
   
   #See when rating columns are equal
@@ -357,12 +335,13 @@ print.homophily <- function(category_name) {
   
   #All invites & Similar gender invites
   all.rows <- length(edgelist$validation)
-  rows.true <-  edgelist[edgelist$validation == TRUE,]
+  rows.true <- edgelist[edgelist$validation == TRUE,]
   equal.rows <- length(rows.true$validation)
   
   #Homophily
   result <- equal.rows/all.rows
-  print(result)
+  result <- round(result*100, 2)
+  print(paste(result, "%"))
 }
 
 load("books.RData")

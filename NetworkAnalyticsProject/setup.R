@@ -161,21 +161,4 @@ dt.books$n_books <- n.books
 # Creating the column n_books_class that tells for each AUTHOR the class of number of books they are in
 dt.books$n_books_class <- with(dt.books, ifelse(n.books >= 0 & n.books < 2, "[0-2[", ifelse(n.books >= 2 & n.books < 5, "[2-5[", ifelse(n.books >= 5 & n.books < 10, "[5 -10[", ifelse(n.books >= 10 & n.books < 15, "[10-15[", ifelse(n.books >= 15 & n.books < 20, "[15-20[", ifelse(n.books >= 20 & n.books <= 25, "[20-25[", ifelse(n.books >= 25 & n.books <= 30, "[25-30[", ifelse(n.books >= 30 & n.books <= 35, "[30-35[", ifelse(n.books >= 35 & n.books <= 40, "[35-40[", ifelse(n.books >= 40 & n.books <= 45, "[40-45]", "NA")))))))))))
 
-set.seed(150)
-
-dict.colors.categories <- hash()
-for (category in unique(dt.books$categories)) {
-  dict.colors.categories[[category]] <- as.character(randomColor(luminosity = "bright"))
-}
-dt.colors <- data.frame(Col1 = c(keys(dict.colors.categories)), Col2 = c(values(dict.colors.categories)),
-                        stringsAsFactors = FALSE)
-
-dict.colors.rating <- hash()
-for (rating_class in unique(dt.books$avg_rating_class)) {
-  dict.colors.rating[[rating_class]] <- as.character(randomColor(luminosity = "bright"))
-}
-dt.colors.avg.rating <- data.frame(Col1 = c(keys(dict.colors.rating)), Col2 = c(values(dict.colors.rating)),
-                                   stringsAsFactors = FALSE)
-
-save(dt.colors, file = "books.RData")
 save(dt.books, file = "books.RData")
